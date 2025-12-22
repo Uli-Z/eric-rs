@@ -62,7 +62,11 @@ fn select_bindings() -> io::Result<()> {
         println!("cargo:rustc-link-search={}", library_path);
         println!("cargo:rustc-link-lib={}", library_name);
         println!("cargo:rerun-if-changed={}", header_file);
-        println!("cargo:rustc-env=LD_LIBRARY_PATH={}", library_path);
+        if is_windows {
+            println!("cargo:rustc-env=PATH={}", library_path);
+        } else {
+            println!("cargo:rustc-env=LD_LIBRARY_PATH={}", library_path);
+        }
     }
 
     let eric_version = if library_path.contains("38.1.6.0") {
@@ -84,6 +88,7 @@ fn select_bindings() -> io::Result<()> {
         (EricVersion::Eric40_1_8_0, "x86_64", false) => "bindings_eric_40_1_8_0_linux_x86_64.rs",
         (EricVersion::Eric40_2_10_0, "x86_64", false) => "bindings_eric_40_2_10_0_linux_x86_64.rs",
         (EricVersion::Eric43_3_2_0, "x86_64", false) => "bindings_eric_43_3_2_0_linux_x86_64.rs",
+        (EricVersion::Eric43_3_2_0, "x86_64", true) => "bindings_eric_43_3_2_0_windows_x86_64.rs",
         _ => {
             panic!("Missing bindings for Eric version {eric_version} and target {target_arch}");
         }
@@ -120,7 +125,13 @@ fn generate_bindings() -> io::Result<()> {
     println!("cargo:rustc-link-search={}", library_path.display());
     println!("cargo:rustc-link-lib={}", library_name);
     println!("cargo:rerun-if-changed={}", header_file.display());
-    println!("cargo:rustc-env=LD_LIBRARY_PATH={}", library_path.display());
+    
+    let is_windows = std::env::var("CARGO_CFG_WINDOWS").is_ok();
+    if is_windows {
+        println!("cargo:rustc-env=PATH={}", library_path.display());
+    } else {
+        println!("cargo:rustc-env=LD_LIBRARY_PATH={}", library_path.display());
+    }
 
     let header = header_file.to_str().expect("Can't convert path to string");
 

@@ -1,7 +1,6 @@
 use anyhow::Context;
 use std::{
     ffi::{CString, OsStr},
-    os::unix::prelude::OsStrExt,
     path::{Path, PathBuf},
 };
 
@@ -39,7 +38,8 @@ impl ToCString for &Path {
 
 impl ToCString for &OsStr {
     fn try_to_cstring(self) -> Result<CString, anyhow::Error> {
-        // TODO: implement conversion for Windows and macOS
-        CString::new(self.as_bytes()).context("Can't convert OsStr to CString")
+        self.to_str()
+            .context("Can't convert OsStr to CString")?
+            .try_to_cstring()
     }
 }
